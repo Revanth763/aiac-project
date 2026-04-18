@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NexusAI — Startup Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080a12;
+  --bg1:#0c0e18;
+  --bg2:#10121e;
+  --bg3:#161828;
+  --bg4:#1c1f35;
+  --surface:#1e2238;
+  --surface2:#242844;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.1);
+  --accent:#4f8ef7;
+  --accent2:#7c6af5;
+  --accent3:#3ecfb2;
+  --accent4:#f25c7c;
+  --text:#eef0ff;
+  --text2:#8891b8;
+  --text3:#4a5280;
+  --font-display:'Bricolage Grotesque',sans-serif;
+  --font-body:'Geist',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --r:10px;
+  --r2:14px;
+  --r3:20px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+  --shadow2:0 8px 48px rgba(0,0,0,0.6);
+  --glow-accent:0 0 40px rgba(79,142,247,0.2);
+}
+html,body,#root{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body)}
+body{overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+input,textarea,button{font-family:var(--font-body)}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+
+// ─── ICONS ────────────────────────────────────────────────────────────────────
+const Icon = ({ d, size=16, stroke="currentColor", fill="none", sw=1.5, vb="0 0 24 24", style, className }) => (
+  <svg width={size} height={size} viewBox={vb} fill={fill} stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" style={style} className={className}>
+    <path d={d}/>
+  </svg>
+);
+
+const Icons = {
+  arrowRight: "M5 12h14M12 5l7 7-7 7",
+  arrowLeft: "M19 12H5M12 5l-7 7 7 7",
+  lightning: "M13 10V3L4 14h7v7l9-11h-7z",
+  chart: "M3 13l4-4 4 4 4-6 4 4M3 20h18",
+  briefcase: "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2",
+  book: "M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z",
+  dollar: "M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6",
+  shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  map: "M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z",
+  message: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
+  file: "M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
+  check: "M20 6L9 17l-5-5",
+  x: "M18 6L6 18M6 6l12 12",
+  send: "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z",
+  star: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+  user: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z",
+  logout: "M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9",
+  settings: "M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z",
+  mail: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6",
+  lock: "M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2zM7 11V7a5 5 0 0110 0v4",
+  eye: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 9a3 3 0 100 6 3 3 0 000-6z",
+  google: null,
+  trending: "M23 6l-9.5 9.5-5-5L1 18",
+  layers: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
+  compass: "M12 2a10 10 0 100 20A10 10 0 0012 2zM16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z",
+  plus: "M12 5v14M5 12h14",
+  sparkle: "M12 3L9.5 9.5 3 12l6.5 2.5L12 21l2.5-6.5L21 12l-6.5-2.5L12 3z",
+};
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const INTERESTS = [
+  { id:"ai",     icon:"🤖", label:"AI / ML",         desc:"Machine learning, LLMs, automation" },
+  { id:"health", icon:"🏥", label:"HealthTech",      desc:"Digital health, biotech, wellness" },
+  { id:"fin",    icon:"💳", label:"FinTech",          desc:"Payments, lending, wealth mgmt" },
+  { id:"edu",    icon:"📚", label:"EdTech",           desc:"Learning, upskilling, credentialing" },
+  { id:"green",  icon:"🌿", label:"CleanTech",        desc:"Climate, energy, sustainability" },
+  { id:"game",   icon:"🎮", label:"Gaming",           desc:"Web3 gaming, esports, interactive" },
+  { id:"shop",   icon:"🛍️", label:"Commerce",        desc:"E-commerce, retail, supply chain" },
+  { id:"sec",    icon:"🔒", label:"Cybersecurity",   desc:"Zero trust, identity, threat intel" },
+  { id:"prop",   icon:"🏗️", label:"PropTech",        desc:"Real estate, smart buildings" },
+  { id:"food",   icon:"🍜", label:"FoodTech",         desc:"Delivery, nutrition, agritech" },
+  { id:"mob",    icon:"🚗", label:"Mobility",        desc:"EV, fleet, autonomous, logistics" },
+  { id:"web3",   icon:"⛓️", label:"Web3",            desc:"DeFi, NFTs, DAOs, blockchain" },
+];
+
+const IDEAS_DB = {
+  ai:[
+    { id:"a1", emoji:"🧠", name:"TherapAI",     tag:"B2C · Mental Health", short:"AI-powered therapy companion", market:"$6.5B", growth:"34%", desc:"Conversational AI mental wellness platform delivering CBT-based therapy sessions, mood tracking, and crisis detection. Proven 3× better retention than traditional apps.", color:"#4f8ef7" },
+    { id:"a2", emoji:"⚡", name:"AutoFlow",     tag:"B2B SaaS · Automation", short:"No-code AI workflow builder", market:"$12.8B", growth:"47%", desc:"Drag-and-drop AI workflow automation for non-technical teams. Replaces 5+ tools with one intelligent platform. 200+ pre-built connectors.", color:"#7c6af5" },
+    { id:"a3", emoji:"🔍", name:"DataLens AI",  tag:"B2B · Analytics", short:"AI business intelligence layer", market:"$8.2B", growth:"39%", desc:"Natural language querying on top of any database. Ask business questions in plain English, get charts and insights instantly — no SQL required.", color:"#3ecfb2" },
+  ],
+  health:[
+    { id:"h1", emoji:"💉", name:"VitaCheck",    tag:"B2C · Diagnostics", short:"At-home AI diagnostics kit", market:"$9.1B", growth:"29%", desc:"Smart blood-test kit paired with AI biomarker analysis. Detects 50+ health markers from a single drop. Subscription refill model.", color:"#4f8ef7" },
+    { id:"h2", emoji:"🩺", name:"DocuMed AI",   tag:"B2B · Clinical", short:"AI clinical documentation", market:"$4.4B", growth:"41%", desc:"Ambient AI that listens to patient encounters and auto-generates SOAP notes, saving physicians 2+ hours daily. HIPAA compliant.", color:"#f25c7c" },
+  ],
+  fin:[
+    { id:"f1", emoji:"📊", name:"ClearLedger",  tag:"B2B SaaS · Accounting", short:"AI bookkeeping for SMBs", market:"$11.3B", growth:"37%", desc:"Automated bookkeeping, invoicing, and tax prep powered by AI. Connects to 80+ banks. Real-time cash flow forecasting dashboard.", color:"#3ecfb2" },
+    { id:"f2", emoji:"📈", name:"WealthPilot",  tag:"B2C · Investing", short:"Behavioral robo-advisor", market:"$15B", growth:"25%", desc:"Hyper-personalized investment portfolios using behavioral finance AI. Adapts to your risk psychology, not just your risk score.", color:"#7c6af5" },
+  ],
+  edu:[
+    { id:"e1", emoji:"🎯", name:"SkillForge",   tag:"B2B2C · Upskilling", short:"Gamified professional learning", market:"$8.6B", growth:"31%", desc:"Micro-credential platform with AI-matched job opportunities. Companies sponsor employee learning; individuals own verified credentials on-chain.", color:"#4f8ef7" },
+    { id:"e2", emoji:"📖", name:"TutorMind",    tag:"B2C · K-12", short:"Adaptive AI tutor", market:"$5.2B", growth:"33%", desc:"AI that personalizes K-12 curriculum in real-time. Identifies knowledge gaps, adjusts pacing, and generates custom practice problems.", color:"#f25c7c" },
+  ],
+  green:[
+    { id:"g1", emoji:"☀️", name:"SolarSync",    tag:"B2C/B2B · Energy", short:"AI solar optimization", market:"$7.9B", growth:"43%", desc:"Rooftop solar yield optimizer that uses weather ML, grid pricing, and EV charging schedules to maximize ROI. Automated energy trading.", color:"#3ecfb2" },
+    { id:"g2", emoji:"♻️", name:"LoopChain",    tag:"B2B · Circular Econ", short:"Blockchain materials marketplace", market:"$3.3B", growth:"58%", desc:"Connects manufacturers with certified recyclers globally. Blockchain traceability from raw material to recycled output. ESG reporting built-in.", color:"#7c6af5" },
+  ],
+  game:[
+    { id:"gm1", emoji:"🕹️", name:"NarrativeX", tag:"B2B · Game Dev", short:"Infinite AI quest generation", market:"$3.8B", growth:"54%", desc:"AI engine for game studios that generates infinite procedural narratives, dialogue trees, and quest lines. API-first. Unity and Unreal plugins.", color:"#f25c7c" },
+    { id:"gm2", emoji:"🏆", name:"PlayDAO",     tag:"B2C · Esports", short:"Decentralized tournament platform", market:"$2.9B", growth:"63%", desc:"Player-owned esports platform where governance tokens unlock prize pool shares. Built-in anti-cheat AI and cross-game reputation system.", color:"#4f8ef7" },
+  ],
+  shop:[
+    { id:"s1", emoji:"🛒", name:"CartAI",       tag:"B2B SaaS · E-com", short:"Real-time purchase intent AI", market:"$18.4B", growth:"32%", desc:"Hyper-personalization engine that predicts purchase intent 15 minutes before conversion. Plugs into any Shopify/WooCommerce store in 5 minutes.", color:"#7c6af5" },
+    { id:"s2", emoji:"📦", name:"QuickFill",    tag:"B2B · Logistics", short:"AI inventory prediction", market:"$6.4B", growth:"28%", desc:"Reduces stockouts by 72% using demand forecasting AI trained on 50+ signals. Built-in supplier negotiation automation.", color:"#3ecfb2" },
+  ],
+  sec:[
+    { id:"sc1", emoji:"🛡️", name:"SentinelAI", tag:"B2B SaaS · Security", short:"Zero-day threat detection", market:"$14.2B", growth:"40%", desc:"Behavioral AI for SMBs that catches zero-day attacks in real-time — no signatures needed. 3-minute setup, SOC2 compliant.", color:"#f25c7c" },
+    { id:"sc2", emoji:"🔐", name:"PrivacyVault",tag:"B2C · Privacy", short:"Personal data protection suite", market:"$2.2B", growth:"69%", desc:"Auto-opts you out of 3,000+ data brokers, monitors dark web for personal data leaks, and generates legal opt-out letters automatically.", color:"#4f8ef7" },
+  ],
+  prop:[
+    { id:"p1", emoji:"🏡", name:"NestIQ",       tag:"B2C · Real Estate", short:"AI deal-matching for buyers", market:"$4.9B", growth:"23%", desc:"AI real estate platform that matches first-time buyers with off-market deals, estimates true renovation costs, and predicts neighborhood appreciation.", color:"#7c6af5" },
+    { id:"p2", emoji:"🔑", name:"PropOps",      tag:"B2B · PropMgmt", short:"All-in-one property management", market:"$7.2B", growth:"35%", desc:"Property management SaaS with AI maintenance prediction (6 weeks ahead), tenant communication automation, and financial reporting.", color:"#3ecfb2" },
+  ],
+  food:[
+    { id:"fd1", emoji:"🍱", name:"NutriCraft",  tag:"B2C · Nutrition", short:"DNA-personalized meal plans", market:"$3.5B", growth:"49%", desc:"AI meal planning personalized to your DNA, gut microbiome data, and dietary goals. Integrates with Instacart/DoorDash for automatic grocery ordering.", color:"#f25c7c" },
+    { id:"fd2", emoji:"👨‍🍳", name:"ChefBot",    tag:"B2B · Restaurants", short:"Kitchen computer vision QA", market:"$2.9B", growth:"55%", desc:"Computer vision system that monitors food prep in real-time for quality, portion consistency, and waste reduction. 40% COGS reduction reported.", color:"#4f8ef7" },
+  ],
+  mob:[
+    { id:"m1", emoji:"⚡", name:"FleetSense",   tag:"B2B · Fleet", short:"Smart fleet management platform", market:"$9.4B", growth:"46%", desc:"IoT + AI fleet management for last-mile delivery. Real-time route optimization, EV charging coordination, and predictive maintenance.", color:"#3ecfb2" },
+    { id:"m2", emoji:"🚲", name:"RidePulse",    tag:"B2C · Commute", short:"AI-matched carpooling", market:"$5.7B", growth:"41%", desc:"Dynamic carpooling that groups commuters by route overlap using graph AI. Cuts individual commute cost by 60%. Carbon offset certificates generated.", color:"#7c6af5" },
+  ],
+  web3:[
+    { id:"w1", emoji:"⛓️", name:"ChainAudit",  tag:"B2B · Security", short:"Automated smart contract auditing", market:"$1.9B", growth:"76%", desc:"AI that scans, identifies, and auto-patches smart contract vulnerabilities before deployment. 10-minute audit vs 3-week manual review.", color:"#f25c7c" },
+    { id:"w2", emoji:"🪙", name:"DeFiPilot",    tag:"B2C · DeFi", short:"Yield optimizer for DeFi", market:"$4.6B", growth:"61%", desc:"Portfolio tracker and risk-adjusted yield optimizer for 200+ DeFi protocols. One-click rebalancing, impermanent loss warnings, and tax reporting.", color:"#4f8ef7" },
+  ],
+};
+
+const MENU_ITEMS = [
+  { id:"market",    icon:Icons.chart,     label:"Market Research" },
+  { id:"business",  icon:Icons.briefcase, label:"Business Plan" },
+  { id:"pitch",     icon:Icons.book,      label:"Pitch Deck" },
+  { id:"financial", icon:Icons.dollar,    label:"Financials" },
+  { id:"branding",  icon:Icons.shield,    label:"Branding" },
+  { id:"roadmap",   icon:Icons.map,       label:"Roadmap" },
+  { id:"chat",      icon:Icons.message,   label:"AI Chat" },
+  { id:"docs",      icon:Icons.file,      label:"Doc Maker" },
+];
+
+// ─── STYLES ───────────────────────────────────────────────────────────────────
+const css = `
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.page{animation:fadeIn .3s ease}
+.fade-up{animation:fadeUp .4s ease both}
+.fade-up-1{animation:fadeUp .4s .05s ease both}
+.fade-up-2{animation:fadeUp .4s .1s ease both}
+.fade-up-3{animation:fadeUp .4s .15s ease both}
+.fade-up-4{animation:fadeUp .4s .2s ease both}
+.fade-up-5{animation:fadeUp .4s .25s ease both}
+.scale-in{animation:scaleIn .3s ease}
+
+/* ── LOGIN ─────────────────────────────────────── */
+.login-shell{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);position:relative;overflow:hidden;padding:24px;
+}
+.login-bg-mesh{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 20% 20%,rgba(79,142,247,.08) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 80% at 80% 80%,rgba(124,106,245,.07) 0%,transparent 60%),
+             radial-gradient(ellipse 40% 40% at 60% 30%,rgba(62,207,178,.05) 0%,transparent 50%);
+}
+.login-grid{
+  position:absolute;inset:0;pointer-events:none;opacity:.4;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.login-card{
+  position:relative;z-index:1;width:100%;max-width:440px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:24px;padding:40px;
+  box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04);
+}
+.login-logo{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.logo-hex{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,#4f8ef7,#7c6af5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+  box-shadow:0 4px 20px rgba(79,142,247,.4);
+}
+.logo-text{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.5px}
+.logo-sub{font-size:12px;color:var(--text3);letter-spacing:.5px;margin-top:1px}
+.login-heading{font-family:var(--font-display);font-size:26px;font-weight:700;margin-bottom:6px;letter-spacing:-.5px}
+.login-desc{font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.6}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.input-box{position:relative}
+.input-box svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.input-box input{
+  width:100%;padding:12px 14px 12px 42px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text);font-size:15px;
+  transition:border-color .2s,box-shadow .2s;outline:none;
+}
+.input-box input:focus{border-color:rgba(79,142,247,.5);box-shadow:0 0 0 3px rgba(79,142,247,.1)}
+.input-box input::placeholder{color:var(--text3)}
+
+.btn-primary{
+  width:100%;padding:13px;border:none;border-radius:var(--r);
+  background:linear-gradient(135deg,#4f8ef7,#7c6af5);
+  color:#fff;font-size:15px;font-weight:600;letter-spacing:-.2px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;box-shadow:0 4px 20px rgba(79,142,247,.35);
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(79,142,247,.45)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.divider-line{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--text3);font-size:13px}
+.divider-line::before,.divider-line::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.social-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.btn-social{
+  padding:11px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--text2);font-size:13px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .2s;
+}
+.btn-social:hover{border-color:var(--border2);color:var(--text);background:var(--bg4)}
+
+.login-footer{text-align:center;font-size:13px;color:var(--text2)}
+.login-footer a{color:var(--accent);font-weight:500}
+.login-footer a:hover{text-decoration:underline}
+.row-between{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.check-label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer}
+.check-label input{accent-color:var(--accent)}
+.forgot{font-size:13px;color:var(--accent);background:none;border:none;padding:0}
+.forgot:hover{text-decoration:underline}
+
+/* ── HOME / INTERESTS ──────────────────────────── */
+.home-shell{min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+.topbar{
+  height:56px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:12px;
+  background:rgba(8,10,18,.8);backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:100;
+}
+.topbar-logo{display:flex;align-items:center;gap:10px;margin-right:auto}
+.topbar-logo .logo-hex{width:30px;height:30px;border-radius:8px;font-size:14px}
+.topbar-logo span{font-family:var(--font-display);font-size:17px;font-weight:800;letter-spacing:-.3px}
+.avatar-btn{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#4f8ef7,#7c6af5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:#fff;border:none;
+  transition:transform .2s;
+}
+.avatar-btn:hover{transform:scale(1.08)}
+
+.home-hero{
+  text-align:center;padding:64px 24px 40px;max-width:700px;margin:0 auto;
+}
+.chip-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 14px;
+  background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);
+  border-radius:100px;font-size:12px;color:var(--accent);font-weight:500;
+  margin-bottom:20px;letter-spacing:.3px;
+}
+.home-title{
+  font-family:var(--font-display);font-size:clamp(36px,5vw,60px);
+  font-weight:800;line-height:1.05;letter-spacing:-2px;margin-bottom:14px;
+}
+.grad{background:linear-gradient(135deg,#4f8ef7 0%,#7c6af5 50%,#3ecfb2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-sub{font-size:16px;color:var(--text2);line-height:1.7;max-width:480px;margin:0 auto}
+
+.interest-section{padding:0 24px 80px;max-width:960px;margin:0 auto;width:100%}
+.section-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.interest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:32px}
+.int-chip{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  padding:16px;cursor:pointer;transition:all .2s;display:flex;gap:14px;align-items:center;
+  position:relative;overflow:hidden;
+}
+.int-chip::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(79,142,247,.08),rgba(124,106,245,.06));opacity:0;transition:opacity .2s}
+.int-chip:hover{border-color:rgba(79,142,247,.3);transform:translateY(-2px)}
+.int-chip:hover::before{opacity:1}
+.int-chip.sel{border-color:rgba(79,142,247,.5);background:rgba(79,142,247,.06)}
+.int-chip.sel::before{opacity:1}
+.int-icon{font-size:24px;flex-shrink:0;line-height:1}
+.int-text{}
+.int-label{font-size:14px;font-weight:600;margin-bottom:2px}
+.int-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.int-check{
+  position:absolute;top:10px;right:10px;width:18px;height:18px;
+  background:var(--accent);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(.5);transition:all .2s;
+}
+.int-chip.sel .int-check{opacity:1;transform:scale(1)}
+
+.gen-bar{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 20px}
+.gen-count{font-size:13px;color:var(--text2);flex:1}
+.gen-count strong{color:var(--text);font-family:var(--font-mono)}
+.btn-gen{
+  padding:11px 24px;background:linear-gradient(135deg,#4f8ef7,#7c6af5);
+  border:none;border-radius:var(--r);color:#fff;font-size:14px;font-weight:600;
+  display:flex;align-items:center;gap:8px;transition:all .2s;
+  box-shadow:0 4px 16px rgba(79,142,247,.3);flex-shrink:0;
+}
+.btn-gen:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(79,142,247,.45)}
+.btn-gen:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ── IDEAS PAGE ────────────────────────────────── */
+.ideas-shell{min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+.ideas-header{padding:40px 24px 28px;max-width:1080px;margin:0 auto;width:100%}
+.ideas-title{font-family:var(--font-display);font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-1.5px;margin-bottom:8px}
+.ideas-sub{font-size:15px;color:var(--text2)}
+
+.ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:0 24px 60px;max-width:1080px;margin:0 auto;width:100%}
+.idea-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);
+  padding:24px;cursor:pointer;transition:all .25s;
+  display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden;
+}
+.idea-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--card-color,linear-gradient(90deg,#4f8ef7,#7c6af5));opacity:0;transition:opacity .3s;
+}
+.idea-card:hover{border-color:rgba(255,255,255,.12);transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.idea-card:hover::after{opacity:1}
+.idea-card-top{display:flex;align-items:flex-start;justify-content:space-between}
+.idea-emoji{font-size:36px;line-height:1}
+.idea-tag-badge{
+  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;
+  background:rgba(255,255,255,.06);color:var(--text2);letter-spacing:.3px;
+}
+.idea-name{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:-.5px}
+.idea-short{font-size:13px;color:var(--accent3);font-weight:500}
+.idea-desc{font-size:13px;color:var(--text2);line-height:1.7}
+.idea-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:14px;border-top:1px solid var(--border);margin-top:auto;
+}
+.idea-metrics{display:flex;gap:16px}
+.metric{font-size:12px;color:var(--text3)}
+.metric strong{color:var(--text2);font-family:var(--font-mono);font-size:13px}
+.select-btn{
+  display:flex;align-items:center;gap:6px;padding:7px 14px;
+  background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.2);
+  border-radius:8px;color:var(--accent);font-size:12px;font-weight:600;
+  transition:all .2s;
+}
+.idea-card:hover .select-btn{background:var(--accent);color:#fff;border-color:transparent}
+
+/* ── DASHBOARD ─────────────────────────────────── */
+.dash-shell{height:100vh;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.dash-topbar{
+  height:52px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 0 0 16px;gap:0;
+  background:var(--bg1);flex-shrink:0;
+}
+.dash-topbar .logo-hex{width:28px;height:28px;border-radius:7px;font-size:13px}
+.dash-topbar-brand{display:flex;align-items:center;gap:10px;padding:0 16px;border-right:1px solid var(--border);height:100%}
+.dash-topbar-brand span{font-family:var(--font-display);font-size:15px;font-weight:800}
+.startup-crumb{
+  display:flex;align-items:center;gap:8px;padding:0 20px;height:100%;flex:1;
+}
+.crumb-sep{color:var(--text3);font-size:18px}
+.startup-emoji-sm{font-size:18px}
+.startup-name-sm{font-size:15px;font-weight:600}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px;padding-right:16px}
+.icon-btn{
+  width:32px;height:32px;background:none;border:1px solid var(--border);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  color:var(--text2);transition:all .2s;
+}
+.icon-btn:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
+
+.dash-body{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ───────────────────────────────────── */
+.sidebar{
+  width:220px;flex-shrink:0;background:var(--bg1);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  overflow-y:auto;padding:16px 10px;
+}
+.sidebar-idea{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:14px;margin-bottom:20px;
+  text-align:center;
+}
+.sidebar-idea-emoji{font-size:32px;margin-bottom:8px}
+.sidebar-idea-name{font-size:13px;font-weight:700;margin-bottom:4px;line-height:1.3}
+.sidebar-idea-tag{font-size:11px;color:var(--text3)}
+.sidebar-section-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:0 6px;margin-bottom:8px}
+.nav-link{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;
+  border-radius:var(--r);color:var(--text2);font-size:13px;font-weight:500;
+  background:none;border:none;width:100%;text-align:left;
+  transition:all .18s;cursor:pointer;
+}
+.nav-link:hover{background:var(--bg3);color:var(--text)}
+.nav-link.active{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.15)}
+.nav-link.active svg{color:var(--accent)}
+.nav-link svg{flex-shrink:0;color:var(--text3);transition:color .18s}
+.nav-link.active svg,.nav-link:hover svg{color:inherit}
+
+/* ── MAIN CONTENT ──────────────────────────────── */
+.main{flex:1;overflow-y:auto;padding:32px 36px;background:var(--bg)}
+.panel{animation:fadeUp .3s ease}
+
+.panel-hdr{margin-bottom:28px}
+.panel-eyebrow{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.panel-title{font-family:var(--font-display);font-size:28px;font-weight:800;letter-spacing:-.8px;margin-bottom:6px}
+.panel-sub{font-size:14px;color:var(--text2);line-height:1.6;max-width:560px}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px}
+.stat-label{font-size:11px;color:var(--text3);letter-spacing:.5px;font-weight:600;text-transform:uppercase;margin-bottom:8px}
+.stat-val{font-family:var(--font-display);font-size:26px;font-weight:800;line-height:1}
+.stat-val.blue{color:#4f8ef7}.stat-val.purple{color:#7c6af5}.stat-val.green{color:#3ecfb2}.stat-val.red{color:#f25c7c}
+.stat-delta{font-size:11px;color:var(--text3);margin-top:4px}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:22px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-title svg{color:var(--accent)}
+.card p{font-size:14px;color:var(--text2);line-height:1.75}
+.card ul{font-size:14px;color:var(--text2);line-height:1.75;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.card ul li{display:flex;align-items:flex-start;gap:10px;padding-left:0}
+.card ul li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:8px}
+
+.bar-row{display:flex;flex-direction:column;gap:12px}
+.bar-item label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px}
+.bar-track{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#4f8ef7,#7c6af5);animation:growBar .8s ease both}
+@keyframes growBar{from{width:0}}
+
+/* Timeline */
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:11px;top:8px;bottom:8px;width:1px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-dot{
+  position:absolute;left:-32px;width:22px;height:22px;border-radius:50%;
+  background:var(--bg3);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  top:2px;
+}
+.tl-item.done .tl-dot{border-color:var(--accent3);background:rgba(62,207,178,.1)}
+.tl-item.active .tl-dot{border-color:var(--accent);background:rgba(79,142,247,.12);box-shadow:0 0 16px rgba(79,142,247,.3)}
+.tl-phase{font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-bottom:4px}
+.tl-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--text2);line-height:1.6}
+.tl-badge{
+  display:inline-block;margin-top:6px;padding:2px 10px;border-radius:100px;
+  font-size:11px;font-weight:600;
+}
+.badge-done{background:rgba(62,207,178,.1);color:var(--accent3)}
+.badge-active{background:rgba(79,142,247,.1);color:var(--accent)}
+.badge-soon{background:rgba(255,255,255,.05);color:var(--text3)}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border)}
+td{padding:12px 14px;font-size:14px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+td.accent{color:var(--accent3);font-family:var(--font-mono);font-weight:600}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* Branding */
+.palette-row{display:flex;gap:8px;margin:12px 0}
+.swatch{flex:1;height:52px;border-radius:8px;display:flex;align-items:flex-end;padding:6px 8px}
+.swatch span{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);font-family:var(--font-mono)}
+.font-preview{background:var(--bg3);border-radius:var(--r);padding:18px;margin:8px 0}
+.fp-display{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.fp-label{font-size:11px;color:var(--text3);font-family:var(--font-mono)}
+.voice-chip{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  font-size:13px;color:var(--text2);margin:4px;
+}
+
+/* Doc Maker */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.doc-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  padding:18px;cursor:pointer;transition:all .2s;
+}
+.doc-card:hover{border-color:rgba(79,142,247,.3);transform:translateY(-2px)}
+.doc-icon{font-size:28px;margin-bottom:10px}
+.doc-name{font-size:14px;font-weight:700;margin-bottom:4px}
+.doc-desc{font-size:12px;color:var(--text3)}
+
+/* Chat */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 180px);max-height:700px}
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;padding-bottom:12px}
+.msg-row{display:flex;gap:10px;align-items:flex-end}
+.msg-row.user{flex-direction:row-reverse}
+.msg-av{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.msg-av.ai{background:linear-gradient(135deg,#4f8ef7,#7c6af5)}
+.msg-av.user{background:var(--bg4)}
+.bubble{
+  padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.6;max-width:75%;
+}
+.bubble.ai{background:var(--bg3);border:1px solid var(--border);border-bottom-left-radius:4px}
+.bubble.user{background:linear-gradient(135deg,#4f8ef7,#7c6af5);color:#fff;border-bottom-right-radius:4px}
+.typing-indicator{display:flex;gap:4px;padding:4px 0}
+.typing-indicator span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:pulse 1.2s infinite}
+.typing-indicator span:nth-child(2){animation-delay:.2s}
+.typing-indicator span:nth-child(3){animation-delay:.4s}
+
+.chat-input-bar{display:flex;gap:10px;margin-top:12px}
+.chat-input{
+  flex:1;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r2);color:var(--text);font-size:14px;outline:none;
+  transition:border-color .2s;
+}
+.chat-input:focus{border-color:rgba(79,142,247,.4)}
+.chat-input::placeholder{color:var(--text3)}
+.chat-send{
+  padding:12px 18px;background:linear-gradient(135deg,#4f8ef7,#7c6af5);
+  border:none;border-radius:var(--r2);color:#fff;font-weight:600;font-size:13px;
+  display:flex;align-items:center;gap:6px;transition:all .2s;
+  box-shadow:0 4px 12px rgba(79,142,247,.3);
+}
+.chat-send:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(79,142,247,.4)}
+
+/* Pitch Deck */
+.pitch-slides{display:flex;flex-direction:column;gap:12px}
+.slide-row{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);
+  padding:18px 20px;display:flex;gap:16px;align-items:flex-start;
+  transition:border-color .2s;cursor:pointer;
+}
+.slide-row:hover{border-color:rgba(79,142,247,.25)}
+.slide-num{
+  width:32px;height:32px;border-radius:8px;
+  background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--accent);
+  flex-shrink:0;
+}
+.slide-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.slide-desc{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* Financial colors in donut */
+.fund-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.fund-item{background:var(--bg3);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:12px}
+.fund-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.fund-pct{font-family:var(--font-mono);font-size:18px;font-weight:600}
+.fund-lbl{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* back btn */
+.back-btn{
+  display:flex;align-items:center;gap:6px;padding:6px 12px;
+  background:none;border:1px solid var(--border);border-radius:var(--r);
+  color:var(--text2);font-size:13px;font-weight:500;
+  transition:all .2s;
+}
+.back-btn:hover{border-color:var(--border2);color:var(--text)}
+`;
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const { useState, useEffect, useRef, useCallback } = React;
+
+function useTyping(text, speed=30, trigger=true) {
+  const [displayed, setDisplayed] = useState('');
+  useEffect(() => {
+    if (!trigger) return;
+    setDisplayed('');
+    let i = 0;
+    const t = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) clearInterval(t);
+    }, speed);
+    return () => clearInterval(t);
+  }, [text, trigger]);
+  return displayed;
+}
+
+// ─── COMPONENTS ───────────────────────────────────────────────────────────────
+
+// ── Logo
+function Logo({ size='md' }) {
+  return (
+    <div className={`logo-hex`} style={size==='sm'?{width:28,height:28,borderRadius:7,fontSize:13}:{}}>
+      ⬡
+    </div>
+  );
+}
+
+// ── Topbar
+function Topbar({ onLogout }) {
+  return (
+    <div className="topbar">
+      <div className="topbar-logo">
+        <Logo/>
+        <span>NexusAI</span>
+      </div>
+      <button className="avatar-btn" onClick={onLogout} title="Sign out">A</button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: LOGIN
+// ─────────────────────────────────────────────────────────────────────────────
+function LoginPage({ onLogin }) {
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  function submit(e) {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => { setLoading(false); onLogin(); }, 1100);
+  }
+
+  return (
+    <div className="login-shell page">
+      <div className="login-bg-mesh"/>
+      <div className="login-grid"/>
+      <div className="login-card fade-up">
+        <div className="login-logo">
+          <div className="logo-hex">⬡</div>
+          <div>
+            <div className="logo-text">NexusAI</div>
+            <div className="logo-sub">STARTUP ASSISTANT</div>
+          </div>
+        </div>
+
+        <h1 className="login-heading">Welcome back</h1>
+        <p className="login-desc">Sign in to your startup workspace and pick up where you left off.</p>
+
+        <form onSubmit={submit}>
+          <div className="field fade-up-1">
+            <label>Email</label>
+            <div className="input-box">
+              <Icon d={Icons.mail} size={16}/>
+              <input type="email" placeholder="you@startup.com" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="email"/>
+            </div>
+          </div>
+          <div className="field fade-up-2">
+            <label>Password</label>
+            <div className="input-box">
+              <Icon d={Icons.lock} size={16}/>
+              <input type={showPass?"text":"password"} placeholder="••••••••••" value={pass} onChange={e=>setPass(e.target.value)} autoComplete="current-password"/>
+            </div>
+          </div>
+          <div className="row-between fade-up-3">
+            <label className="check-label"><input type="checkbox"/> Remember me</label>
+            <button type="button" className="forgot">Forgot password?</button>
+          </div>
+          <button type="submit" className="btn-primary fade-up-4" disabled={loading}>
+            {loading ? <><span style={{width:14,height:14,border:'2px solid rgba(255,255,255,.3)',borderTopColor:'#fff',borderRadius:'50%',display:'inline-block',animation:'spin .6s linear infinite'}}/> Signing in…</> : <><span>Sign in</span><Icon d={Icons.arrowRight} size={16}/></>}
+          </button>
+        </form>
+
+        <div className="divider-line fade-up-5">or continue with</div>
+
+        <div className="social-btns fade-up-5">
+          <button className="btn-social" onClick={onLogin}>
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google
+          </button>
+          <button className="btn-social" onClick={onLogin}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </button>
+        </div>
+
+        <p className="login-footer fade-up-5">Don't have an account? <a href="#" onClick={e=>{e.preventDefault();onLogin()}}>Create one free →</a></p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: HOME (INTERESTS)
+// ─────────────────────────────────────────────────────────────────────────────
+function HomePage({ onGenerate, onLogout }) {
+  const [selected, setSelected] = useState([]);
+
+  function toggle(id) {
+    setSelected(s => s.includes(id) ? s.filter(x=>x!==id) : [...s, id]);
+  }
+
+  return (
+    <div className="home-shell page">
+      <Topbar onLogout={onLogout}/>
+      <div className="home-hero fade-up">
+        <div className="chip-badge"><span>✦</span> AI-Powered Startup Builder</div>
+        <h1 className="home-title">Build your next<br/><span className="grad">big idea</span></h1>
+        <p className="home-sub">Select the domains that excite you — we'll generate tailored startup ideas and give you a full toolkit to build them.</p>
+      </div>
+
+      <div className="interest-section">
+        <div className="section-label fade-up-1">Choose your domains</div>
+        <div className="interest-grid fade-up-2">
+          {INTERESTS.map(({ id, icon, label, desc }) => (
+            <button key={id} className={`int-chip${selected.includes(id)?' sel':''}`} onClick={()=>toggle(id)}>
+              <div className="int-icon">{icon}</div>
+              <div className="int-text">
+                <div className="int-label">{label}</div>
+                <div className="int-desc">{desc}</div>
+              </div>
+              <div className="int-check">
+                <Icon d={Icons.check} size={10} stroke="#fff" sw={3}/>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div className="gen-bar fade-up-3">
+          <div className="gen-count">
+            {selected.length === 0
+              ? <span style={{color:'var(--text3)'}}>Select at least one domain to continue</span>
+              : <><strong>{selected.length}</strong> domain{selected.length>1?'s':''} selected — ready to generate ideas</>}
+          </div>
+          <button className="btn-gen" disabled={selected.length===0} onClick={()=>onGenerate(selected)}>
+            <Icon d={Icons.lightning} size={15} stroke="#fff"/>
+            Generate Ideas
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: IDEAS
+// ─────────────────────────────────────────────────────────────────────────────
+function IdeasPage({ selected, onSelect, onBack, onLogout }) {
+  const ideas = selected.flatMap(id => IDEAS_DB[id] || []).filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i);
+
+  return (
+    <div className="ideas-shell page">
+      <Topbar onLogout={onLogout}/>
+      <div className="ideas-header fade-up">
+        <button className="back-btn" onClick={onBack} style={{marginBottom:20}}>
+          <Icon d={Icons.arrowLeft} size={14}/> Back
+        </button>
+        <h2 className="ideas-title">Your startup <span className="grad">ideas</span></h2>
+        <p className="ideas-sub">
+          {ideas.length} ideas generated across {selected.length} domain{selected.length>1?'s':''}. Select one to start building.
+        </p>
+      </div>
+
+      <div className="ideas-grid">
+        {ideas.map((idea, i) => (
+          <div
+            key={idea.id}
+            className="idea-card fade-up"
+            style={{'--card-color': idea.color, animationDelay:`${i*0.06}s`}}
+            onClick={()=>onSelect(idea)}
+          >
+            <div className="idea-card-top">
+              <div className="idea-emoji">{idea.emoji}</div>
+              <div className="idea-tag-badge">{idea.tag}</div>
+            </div>
+            <div>
+              <div className="idea-name">{idea.name}</div>
+              <div className="idea-short">{idea.short}</div>
+            </div>
+            <div className="idea-desc">{idea.desc}</div>
+            <div className="idea-footer">
+              <div className="idea-metrics">
+                <div className="metric">Market<br/><strong>{idea.market}</strong></div>
+                <div className="metric">Growth<br/><strong>{idea.growth}/yr</strong></div>
+              </div>
+              <div className="select-btn">
+                Select <Icon d={Icons.arrowRight} size={12}/>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT PANELS
+// ─────────────────────────────────────────────────────────────────────────────
+function MarketPanel({ idea }) {
+  return (
+    <div className="panel">
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.chart} size={12}/>Market Intelligence</div>
+        <h2 className="panel-title">Market Research</h2>
+        <p className="panel-sub">Deep analysis of your target market, competitive landscape, and customer segments for {idea.name}.</p>
+      </div>
+      <div className="stats-row">
+        <div className="stat-card"><div className="stat-label">Total Market</div><div className="stat-val blue">{idea.market}</div><div className="stat-delta">TAM addressable</div></div>
+        <div className="stat-card"><div className="stat-label">Annual Growth</div><div className="stat-val green">{idea.growth}</div><div className="stat-delta">CAGR 2024–2029</div></div>
+        <div className="stat-card"><div className="stat-label">Segment</div><div className="stat-val purple" style={{fontSize:18}}>{idea.tag.split('·')[0].trim()}</div><div className="stat-delta">Primary model</div></div>
+        <div className="stat-card"><div className="stat-label">Competition</div><div className="stat-val red" style={{fontSize:18}}>Medium</div><div className="stat-delta">Competitive index</div></div>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.compass} size={16}/>Target Customer Profile</div>
+        <p>Primary audience: tech-forward professionals 25–45 with high digital engagement. Secondary: SMEs seeking to automate workflows. Core pain point: existing solutions are fragmented, expensive, and hard to scale. Customer LTV projected at $1,800–$4,200.</p>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.trending} size={16}/>Competitive Landscape</div>
+        <div className="bar-row" style={{marginTop:8}}>
+          {[['Market Leader',68,'#4f8ef7'],['Challenger',22,'#7c6af5'],['Others',10,'#3ecfb2']].map(([n,v,c])=>(
+            <div className="bar-item" key={n}>
+              <label><span>{n}</span><span style={{fontFamily:'var(--font-mono)',color:'var(--text)'}}>{v}%</span></label>
+              <div className="bar-track"><div className="bar-fill" style={{width:`${v}%`,background:`linear-gradient(90deg,${c},${c}aa)`}}/></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.star} size={16}/>Key Opportunities</div>
+        <ul>
+          <li>AI-native solutions replacing legacy platforms across verticals</li>
+          <li>SMB segment vastly underserved by enterprise-grade tools</li>
+          <li>Regulatory tailwinds accelerating digital transformation</li>
+          <li>Partnership channels with established SaaS ecosystems</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function BusinessPanel({ idea }) {
+  return (
+    <div className="panel">
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.briefcase} size={12}/>Strategy</div>
+        <h2 className="panel-title">Business Plan</h2>
+        <p className="panel-sub">Comprehensive framework covering your model, go-to-market, and operational strategy for {idea.name}.</p>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.sparkle} size={16}/>Executive Summary</div>
+        <p>{idea.name} is a {idea.tag} venture targeting the {idea.market} market. Our solution closes a critical gap by combining AI with an intuitive UX. We project profitability within 18 months through a capital-efficient PLG strategy, targeting 78% gross margins at scale.</p>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.dollar} size={16}/>Revenue Streams</div>
+        <ul>
+          <li><strong style={{color:'var(--accent)'}}>Freemium SaaS</strong> — $0 / $29 / $99 / $299 per month tiers</li>
+          <li><strong style={{color:'var(--accent2)'}}>Usage-Based</strong> — Pay per API call beyond base tier limits</li>
+          <li><strong style={{color:'var(--accent3)'}}>Enterprise</strong> — Custom contracts with SLA and dedicated support</li>
+          <li><strong style={{color:'var(--accent4)'}}>Marketplace</strong> — 15% commission on third-party integrations</li>
+        </ul>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.trending} size={16}/>Go-To-Market</div>
+        <ul>
+          <li>Phase 1 — PLG free tier; target 10,000 signups in 90 days</li>
+          <li>Phase 2 — SEO content engine targeting high-intent keywords</li>
+          <li>Phase 3 — Channel partnerships with complementary SaaS tools</li>
+          <li>Phase 4 — Enterprise outbound with dedicated account executives</li>
+        </ul>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.user} size={16}/>Team Requirements</div>
+        <ul>
+          <li>CTO / Technical Co-founder — AI/ML background, previous startup exp</li>
+          <li>Head of Product — B2B SaaS, 5+ years, PLG expertise</li>
+          <li>Growth Lead — demand gen, SEO, lifecycle marketing</li>
+          <li>2× Full-Stack Engineers — React, Node.js, Python/FastAPI</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function PitchPanel({ idea }) {
+  const slides = [
+    { n:1, title:"Problem", body:`The ${idea.market} market is plagued by fragmented, expensive tools that fail to scale. Businesses lose 12+ hours/week to inefficiency, costing the industry billions annually.` },
+    { n:2, title:"Solution", body:`${idea.name} is the AI-native platform that replaces 5+ legacy tools. First value in under 60 seconds. 10× faster, 70% cheaper — no technical expertise required.` },
+    { n:3, title:"Market Size", body:`TAM: ${idea.market} growing at ${idea.growth}/yr. SAM of $${(parseFloat(idea.market)*0.28).toFixed(1)}B immediately addressable. SOM target: $${(parseFloat(idea.market)*0.04).toFixed(1)}B in 3 years.` },
+    { n:4, title:"Product Demo", body:`[Live walkthrough] Sign up → First output in 60 seconds → Share & export. Core loop designed for daily habitual use. Demo recording linked in appendix.` },
+    { n:5, title:"Traction", body:`412 waitlist signups in 14 days, zero paid acquisition. 3 pilot customers with signed LOIs. NPS 74 in closed beta. Featured in 2 major newsletters.` },
+    { n:6, title:"Business Model", body:`Freemium → paid at $29/$99/$299/mo. LTV:CAC target 4:1 by month 12. 90% gross margins at scale. Expansion revenue from upsells and API usage.` },
+    { n:7, title:"Competition", body:`Incumbents are slow, non-AI-native, and enterprise-only. We win on speed, price, and ease of adoption. Moat: proprietary data flywheel grows stronger with each user.` },
+    { n:8, title:"Team", body:`Founders with 15+ years combined experience in AI, SaaS, and the target vertical. Backed by advisors from Y Combinator, a16z portfolio, and 2 prior exits.` },
+    { n:9, title:"Financials", body:`Raising $750K seed. 18-month runway. Break-even month 16. $4.2M ARR projected year 3. Detailed model available on request.` },
+    { n:10, title:"The Ask", body:`$750K at $4.5M pre-money. Use: 45% product, 30% GTM, 15% ops, 10% reserve. Next milestone: 1,000 paying customers + Series A raise.` },
+  ];
+  return (
+    <div className="panel">
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.layers} size={12}/>Investor Ready</div>
+        <h2 className="panel-title">Pitch Deck</h2>
+        <p className="panel-sub">10-slide investor narrative for {idea.name}. Export to PDF or present directly.</p>
+      </div>
+      <div className="pitch-slides">
+        {slides.map(s=>(
+          <div className="slide-row" key={s.n}>
+            <div className="slide-num">{String(s.n).padStart(2,'0')}</div>
+            <div>
+              <div className="slide-title">{s.title}</div>
+              <div className="slide-desc">{s.body}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FinancialPanel({ idea }) {
+  return (
+    <div className="panel">
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.dollar} size={12}/>Projections</div>
+        <h2 className="panel-title">Financial Estimator</h2>
+        <p className="panel-sub">3-year model for {idea.name} based on industry benchmarks and growth assumptions.</p>
+      </div>
+      <div className="stats-row">
+        <div className="stat-card"><div className="stat-label">Seed Target</div><div className="stat-val blue">$750K</div></div>
+        <div className="stat-card"><div className="stat-label">Runway</div><div className="stat-val green">18 mo</div></div>
+        <div className="stat-card"><div className="stat-label">Break-even</div><div className="stat-val purple" style={{fontSize:20}}>Mo 16</div></div>
+        <div className="stat-card"><div className="stat-label">ARR Year 3</div><div className="stat-val red">$4.2M</div></div>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.chart} size={16}/>Revenue Projections</div>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Year 1</th><th>Year 2</th><th>Year 3</th></tr></thead>
+            <tbody>
+              {[
+                ['Active Users','1,200','6,800','18,500'],
+                ['MRR','$28K','$158K','$350K'],
+                ['ARR','$336K','$1.9M','$4.2M'],
+                ['Gross Margin','62%','71%','78%'],
+                ['Net Burn','-$42K/mo','-$18K/mo','+$22K/mo'],
+              ].map(([m,...vals])=>(
+                <tr key={m}><td style={{color:'var(--text)',fontWeight:500}}>{m}</td>{vals.map((v,i)=><td key={i} className="accent">{v}</td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-title"><Icon d={Icons.briefcase} size={16}/>Use of Funds</div>
+        <div className="fund-grid">
+          {[['Product & Eng','45%','$337K','#4f8ef7'],['Sales & Marketing','30%','$225K','#7c6af5'],['Operations','15%','$112K','#3ecfb2'],['Reserve','10%','$75K','#f25c7c']].map(([l,p,v,c])=>(
+            <div className="fund-item" key={l}>
+              <div className="fund-dot" style={{background:c}}/>
+              <div><div className="fund-pct" style={{color:c}}>{p}</div><div className="fund-lbl">{l}</div><div style={{fontSize:13,fontFamily:'var(--font-mono)',color:'var(--text)',marginTop:2}}>{v}</div></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BrandingPanel({ idea }) {
+  return (
+    <div className="panel">
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.shield} size={12}/>Identity</div>
+        <h2 className="panel-title">Branding Kit</h2>
+        <p className="panel-sub">Brand identity system for {idea.name} — palette, typography, voice, and visual guidelines.</p>
+      </div>
+      <div className="card">
+        <div className="card-title">Color Palette</div>
+        <div className="palette-row">
+          {[['#4f8ef7','Primary'],['#7c6af5','Secondary'],['#3ecfb2','Accent'],['#080a12','Background'],['#f25c7c','Alert']].map(([c,l])=>(
+            <div className="swatch" key={c} style={{background:c}}><span>{c}</span></div>
+          ))}
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-title">Typography</div>
+        <div className="font-preview">
+          <div className="fp-display">{idea.name}</div>
+          <div className="fp-label">Bricolage Grotesque 800 — Display & Headlines</div>
+        </div>
+        <div className="font-preview">
+          <div style={{fontSize:16,lineHeight:1.6,marginBottom:4}}>Intelligent tools for ambitious founders who move fast and think boldly.</div>
+          <div className="fp-label">Geist 400 — Body & UI</div>
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-title">Brand Voice</div>
+        <div style={{display:'flex',flexWrap:'wrap',gap:0,marginTop:4}}>
+          {['Confident','Data-driven','Founder-first','Bold but precise','Anti-hype','Empowering'].map(v=>(
+            <span className="voice-chip" key={v}>{v}</span>
+          ))}
+        </div>
+      </div>
+      <div className="card">
+        <div className="card-title">Logo & Usage</div>
+        <p>The wordmark uses Bricolage Grotesque 800. Minimum clearspace = 2× cap height. Never stretch, rotate, or apply drop shadows. Minimum digital size: 32px height. Always use the gradient version on dark backgrounds; single-color variant approved for embossed media.</p>
+      </div>
+    </div>
+  );
+}
+
+function RoadmapPanel({ idea }) {
+  const milestones = [
+    { phase:"Month 1–2",  title:"Foundation",   desc:"Team formation, stack setup, MVP scoping, 20+ user interviews, define success metrics.", status:"done",   emoji:"🏗️" },
+    { phase:"Month 3–4",  title:"MVP Build",    desc:"Core feature sprint. Alpha release to 50 closed beta users. Daily iteration loop.", status:"done",   emoji:"⚙️" },
+    { phase:"Month 5–6",  title:"Beta Launch",  desc:"Public beta. Onboard first 500 users. Weekly NPS surveys and cohort retention tracking.", status:"active", emoji:"🚀" },
+    { phase:"Month 7–8",  title:"Growth Sprint",desc:"Content SEO blitz, referral program live, first paid acquisition channels tested.", status:"soon",   emoji:"📈" },
+    { phase:"Month 9–10", title:"Seed Round",   desc:"Fundraising roadshow. Target $750K–$1.5M. Close with 2–3 strategic angels.", status:"soon",   emoji:"💰" },
+    { phase:"Month 11–12",title:"Scale",        desc:"Hire AE + growth team. Enterprise tier launch. Integrations marketplace goes live.", status:"soon",   emoji:"🌍" },
+  ];
+  return (
+    <div className="panel">
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.map} size={12}/>Execution</div>
+        <h2 className="panel-title">Product Roadmap</h2>
+        <p className="panel-sub">12-month plan from zero to scaling {idea.name}.</p>
+      </div>
+      <div className="card">
+        <div className="timeline">
+          {milestones.map((m,i)=>(
+            <div className={`tl-item ${m.status}`} key={i}>
+              <div className="tl-dot">{m.emoji}</div>
+              <div>
+                <div className="tl-phase">{m.phase}</div>
+                <div className="tl-title">{m.title}</div>
+                <div className="tl-desc">{m.desc}</div>
+                <span className={`tl-badge badge-${m.status}`}>
+                  {m.status==='done'?'✓ Completed':m.status==='active'?'⚡ In Progress':'○ Upcoming'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const AI_REPLIES = [
+  "For {name}, I'd prioritize PLG above all else. Get users to their 'aha moment' in under 60 seconds — that's the single metric that predicts retention better than anything else.",
+  "Your biggest moat is data. Every interaction {name} handles trains a better model, which attracts more users. Document this flywheel explicitly for investor conversations.",
+  "On pricing: the middle tier ($99) typically converts 3× better when labeled 'Most Popular' and when you deliberately limit the free tier. Don't undercharge — raise prices earlier than feels comfortable.",
+  "For your first 100 customers, I'd skip ads entirely. Cold DMs to founders on Twitter/LinkedIn in your target segment, hyper-personalized to their specific pain. Paid acquisition scales later when you know LTV.",
+  "The biggest pitch deck mistake I see: too much product, not enough market evidence. Lead with market timing — why is now the right moment for {name} to exist?",
+  "Consider a 'Founding Member' lifetime deal at $299 one-time. ProductHunt + AppSumo distribution generates early cash, testimonials, and super-users who become your best marketers.",
+];
+
+function ChatPanel({ idea }) {
+  const [msgs, setMsgs] = useState([
+    { role:'ai', text:`Hi! I'm your AI co-founder for **${idea.name}**. Ask me anything — pitch strategy, competitive analysis, pricing, fundraising, or growth tactics. I'm here to help you build.` }
+  ]);
+  const [input, setInput] = useState('');
+  const [typing, setTyping] = useState(false);
+  const [replyIdx, setReplyIdx] = useState(0);
+  const bottomRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:'smooth'}) },[msgs,typing]);
+
+  function send() {
+    const txt = input.trim();
+    if (!txt) return;
+    setMsgs(m=>[...m,{role:'user',text:txt}]);
+    setInput('');
+    setTyping(true);
+    setTimeout(()=>{
+      const reply = AI_REPLIES[replyIdx % AI_REPLIES.length].replace(/{name}/g, idea.name);
+      setReplyIdx(r=>r+1);
+      setMsgs(m=>[...m,{role:'ai',text:reply}]);
+      setTyping(false);
+    }, 1200 + Math.random()*600);
+  }
+
+  return (
+    <div className="panel" style={{height:'100%'}}>
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.message} size={12}/>AI Co-Founder</div>
+        <h2 className="panel-title">AI Chat</h2>
+        <p className="panel-sub">Strategy, research, and growth guidance for {idea.name}.</p>
+      </div>
+      <div className="chat-wrap">
+        <div className="chat-msgs">
+          {msgs.map((m,i)=>(
+            <div className={`msg-row ${m.role}`} key={i}>
+              <div className={`msg-av ${m.role}`}>{m.role==='ai'?'⬡':'A'}</div>
+              <div className={`bubble ${m.role}`}>{m.text}</div>
+            </div>
+          ))}
+          {typing && (
+            <div className="msg-row ai">
+              <div className="msg-av ai">⬡</div>
+              <div className="bubble ai">
+                <div className="typing-indicator"><span/><span/><span/></div>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef}/>
+        </div>
+        <div className="chat-input-bar">
+          <input ref={inputRef} className="chat-input" placeholder="Ask about strategy, fundraising, competition…" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}/>
+          <button className="chat-send" onClick={send}>
+            <Icon d={Icons.send} size={14} stroke="#fff"/>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DocsPanel({ idea }) {
+  const [active, setActive] = useState(null);
+  const docs = [
+    {icon:'📊',name:'Pitch Deck',desc:'12-slide investor presentation'},
+    {icon:'📝',name:'Business Plan',desc:'Full 20-page business document'},
+    {icon:'⚖️',name:'Term Sheet',desc:'Standard investment term sheet'},
+    {icon:'🤝',name:'NDA Template',desc:'Mutual non-disclosure agreement'},
+    {icon:'💼',name:'Investor Update',desc:'Monthly LP/investor memo'},
+    {icon:'🏢',name:'One-Pager',desc:'Executive summary for partners'},
+  ];
+  return (
+    <div className="panel">
+      <div className="panel-hdr">
+        <div className="panel-eyebrow"><Icon d={Icons.file} size={12}/>Documentation</div>
+        <h2 className="panel-title">Document Maker</h2>
+        <p className="panel-sub">Generate investor-grade documents for {idea.name} in seconds.</p>
+      </div>
+      <div className="doc-grid">
+        {docs.map(d=>(
+          <div className={`doc-card${active===d.name?' sel':''}`} key={d.name} onClick={()=>setActive(d.name)} style={active===d.name?{borderColor:'rgba(79,142,247,.5)',background:'rgba(79,142,247,.06)'}:{}}>
+            <div className="doc-icon">{d.icon}</div>
+            <div className="doc-name">{d.name}</div>
+            <div className="doc-desc">{d.desc}</div>
+          </div>
+        ))}
+      </div>
+      {active && (
+        <div className="card fade-up" style={{border:'1px solid rgba(79,142,247,.2)',background:'rgba(79,142,247,.04)'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+            <div className="card-title" style={{margin:0}}>Generating: {active} for {idea.name}</div>
+            <button className="btn-primary" style={{width:'auto',padding:'8px 20px',fontSize:13}} onClick={()=>alert(`${active} for ${idea.name} would download here!`)}>
+              <Icon d={Icons.arrowRight} size={14} stroke="currentColor"/>
+              Download
+            </button>
+          </div>
+          <p>Your document will be tailored with {idea.name}'s specific market data, financial projections, and business model. Estimated generation time: 8 seconds.</p>
+        </div>
+      )}
+      {!active && <p style={{fontSize:14,color:'var(--text3)',textAlign:'center',padding:'20px 0'}}>Select a document type above to generate it</p>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PAGE: DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+function DashboardPage({ idea, onBack, onLogout }) {
+  const [activeMenu, setActiveMenu] = useState('market');
+
+  const panels = {
+    market: <MarketPanel idea={idea}/>,
+    business: <BusinessPanel idea={idea}/>,
+    pitch: <PitchPanel idea={idea}/>,
+    financial: <FinancialPanel idea={idea}/>,
+    branding: <BrandingPanel idea={idea}/>,
+    roadmap: <RoadmapPanel idea={idea}/>,
+    chat: <ChatPanel idea={idea}/>,
+    docs: <DocsPanel idea={idea}/>,
+  };
+
+  return (
+    <div className="dash-shell page">
+      {/* Top bar */}
+      <div className="dash-topbar">
+        <div className="dash-topbar-brand">
+          <div className="logo-hex" style={{width:28,height:28,borderRadius:7,fontSize:13}}>⬡</div>
+          <span>NexusAI</span>
+        </div>
+        <div className="startup-crumb">
+          <span className="crumb-sep" style={{color:'var(--text3)',margin:'0 6px'}}>›</span>
+          <span className="startup-emoji-sm">{idea.emoji}</span>
+          <span className="startup-name-sm">{idea.name}</span>
+        </div>
+        <div className="topbar-actions">
+          <button className="icon-btn" title="Back to ideas" onClick={onBack}>
+            <Icon d={Icons.arrowLeft} size={14}/>
+          </button>
+          <button className="icon-btn" title="Settings">
+            <Icon d={Icons.settings} size={14}/>
+          </button>
+          <button className="avatar-btn" onClick={onLogout} title="Sign out">A</button>
+        </div>
+      </div>
+
+      <div className="dash-body">
+        {/* Sidebar */}
+        <aside className="sidebar">
+          <div className="sidebar-idea">
+            <div className="sidebar-idea-emoji">{idea.emoji}</div>
+            <div className="sidebar-idea-name">{idea.name}</div>
+            <div className="sidebar-idea-tag">{idea.tag}</div>
+          </div>
+          <div className="sidebar-section-label">Workspace</div>
+          {MENU_ITEMS.map(m=>(
+            <button key={m.id} className={`nav-link${activeMenu===m.id?' active':''}`} onClick={()=>setActiveMenu(m.id)}>
+              <Icon d={m.icon} size={15}/>
+              {m.label}
+            </button>
+          ))}
+        </aside>
+
+        {/* Content */}
+        <main className="main" key={activeMenu}>
+          {panels[activeMenu]}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROOT APP
+// ─────────────────────────────────────────────────────────────────────────────
+function App() {
+  const [page, setPage] = useState('login');
+  const [selectedDomains, setSelectedDomains] = useState([]);
+  const [selectedIdea, setSelectedIdea] = useState(null);
+
+  function handleLogin() { setPage('home'); }
+  function handleLogout() { setPage('login'); setSelectedIdea(null); setSelectedDomains([]); }
+  function handleGenerate(domains) { setSelectedDomains(domains); setPage('ideas'); }
+  function handleSelectIdea(idea) { setSelectedIdea(idea); setPage('dashboard'); }
+  function handleBackToHome() { setPage('home'); }
+  function handleBackToIdeas() { setPage('ideas'); }
+
+  return (
+    <>
+      <style>{css}</style>
+      {page === 'login'     && <LoginPage onLogin={handleLogin}/>}
+      {page === 'home'      && <HomePage onGenerate={handleGenerate} onLogout={handleLogout}/>}
+      {page === 'ideas'     && <IdeasPage selected={selectedDomains} onSelect={handleSelectIdea} onBack={handleBackToHome} onLogout={handleLogout}/>}
+      {page === 'dashboard' && selectedIdea && <DashboardPage idea={selectedIdea} onBack={handleBackToIdeas} onLogout={handleLogout}/>}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
